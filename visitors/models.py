@@ -1,5 +1,7 @@
 import uuid
 from django.db import models
+from django.utils import timezone
+
 
 class Visitor(models.Model):
   id = models.UUIDField(
@@ -10,7 +12,7 @@ class Visitor(models.Model):
   )
   visitor_name = models.CharField(
     max_length=100,
-    verbose_name='来訪者'
+    verbose_name='来訪者名'
   )
   visit_purpose = models.CharField(
     max_length=255,
@@ -27,6 +29,10 @@ class Visitor(models.Model):
     null=True,
     blank=True,
     verbose_name='メールアドレス'
+  )
+  checked_in_at = models.DateTimeField(
+    default=timezone.now,
+    verbose_name='受付日時'
   )
   checked_at = models.DateTimeField(
     auto_now_add=True,
