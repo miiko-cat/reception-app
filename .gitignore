@@ -1,3 +1,9 @@
 # Pythonキャッシュ
 __pycache__/
 *.pyc
+
+# 環境設定ファイル
+.env
+
+# 仮想環境フォルダ
+venv/
