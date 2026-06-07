@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}受付アプリ{% endblock %}</title>
+    <!-- Pico CSS（クラス不要でモダンな見た目） -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <!-- 日本語フォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <style>
+        /* テキスト中央寄せ定義 */
+        .text-center {
+            text-align: center;
+        }
+    </style>
+    <!-- 追加のheadタグ -->
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
