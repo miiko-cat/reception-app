@@ -1,0 +1,72 @@
+{% extends "visitors/staff/base_staff.html" %}
+{% load query_tags %}
+
+{% block content %}
+
+  <div class="sheet-toolbar">
+    <span class="sheet-title">来訪者一覧</span>
+    <span class="sheet-count">{{ visitors|length }} 件</span>
+    <button type="submit" form="filter-form">検索</button>
+    <a href="{% url 'staff_visitor_list' %}" class="btn-link">クリア</a>
+    <a href="{% url 'staff_logout' %}" class="btn-link logout">ログアウト</a>
+  </div>
+  <form method="get" id="filter-form">
+    <div class="sheet-wrap">
+      <table class="excel-sheet">
+        <!-- 1行目: 列見出し（クリックでソート） -->
+        <thead>
+          <tr class="header-row">
+            <th class="col-no">#</th>
+            <th>
+              <a href="?{% query_string sort=sort_name_next %}">
+                来訪者名
+                {% if sort == 'visitor_name' %}▲
+                {% elif sort == '-visitor_name' %}▼
+                {% endif %}
+              </a>
+            </th>
+            <th>来訪目的</th>
+            <th>電話番号</th>
+            <th>メール</th>
+            <th>
+              <a href="?{% query_string sort=sort_date_next %}">
+                受付日時
+                {% if sort == '-checked_in_at' %}▼
+                {% elif sort == 'checked_in_at' %}▲
+                {% endif %}
+              </a>
+            </th>
+          </tr>
+          <!-- 2行目: フィルター行 -->
+          <tr class="filter-row">
+            <th></th>
+            <th><input name="visitor_name" value="{{ active_filters.visitor_name }}" placeholder="含む"></th>
+            <th><input name="visit_purpose" value="{{ active_filters.visit_purpose }}" placeholder="含む"></th>
+            <th><input name="phone_number" value="{{ active_filters.phone_number }}" placeholder="含む"></th>
+            <th><input name="email" value="{{ active_filters.email }}" placeholder="含む"></th>
+            <th class="date-filter">
+              <input type="date" name="date_from" value="{{ date_from }}">
+              〜
+              <input type="date" name="date_to" value="{{ date_to }}">
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in visitors %}
+          <tr>
+            <td class="col-no">{{ forloop.counter }}</td>
+            <td>{{ v.visitor_name }}</td>
+            <td class="truncate" title="{{ v.visit_purpose }}">{{ v.visit_purpose }}</td>
+            <td>{{ v.phone_number|default:"" }}</td>
+            <td>{{ v.email|default:"" }}</td>
+            <td class="datetime">{{ v.checked_in_at|date:"Y/m/d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="empty">該当データがありません</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+
+{% endblock %}

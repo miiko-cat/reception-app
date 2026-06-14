@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}来訪者一覧{% endblock %}</title>
+    <!-- 日本語フォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <style>
+        body {
+            font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+            font-size: 12px;
+            margin: 0;
+            background: #f3f3f3;
+        }
+        .sheet-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #217346; /* Excel っぽい緑 */
+            color: #fff;
+            font-size: 13px;
+        }
+        .sheet-wrap {
+            overflow: auto;
+            max-height: calc(100vh - 48px);
+            background: #fff;
+        }
+          
+        .excel-sheet {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+          
+        .excel-sheet th,
+        .excel-sheet td {
+            border: 1px solid #d4d4d4;
+            padding: 4px 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+          
+        .header-row th {
+            background: #e2efda;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        
+        .filter-row th {
+            background: #f9f9f9;
+            position: sticky;
+            top: 29px; /* ヘッダー行の高さに合わせる */
+            z-index: 2;
+            padding: 2px 4px;
+        }
+        
+        .filter-row input {
+            width: 100%;
+            font-size: 12px;
+            padding: 2px 4px;
+            border: 1px solid #bbb;
+            margin: 0;
+        }
+        
+        .excel-sheet tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .excel-sheet tbody tr:hover {
+            background: #fff2cc; /* Excel の選択行っぽい黄色 */
+        }
+        
+        .col-no {
+            width: 40px;
+            text-align: center;
+            background: #f3f3f3;
+            color: #666;
+        }
+        
+        .datetime {
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .empty {
+            text-align: center;
+            color: #888;
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

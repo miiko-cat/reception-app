@@ -1,0 +1,15 @@
+{% extends "visitors/staff/base_staff.html" %}
+
+{% block content %}
+    <header class="text-center">
+        <h1>訪問者一覧画面</h1>
+        <h2>ログイン</h2>
+    </header>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">ログイン</button>
+    </form>
+
+{% endblock %}
