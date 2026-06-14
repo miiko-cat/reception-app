@@ -1,8 +1,12 @@
-from email import message
+from datetime import datetime
+
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponseForbidden
+from django.conf import settings
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 
 from visitors.reception_forms import VisitorForm
 from visitors.models import Visitor
@@ -60,8 +64,8 @@ def visitor_list(request):
       active_filters[param] = value
       
   # 日付範囲
-  date_from = request.GET.get('date_from', '')
-  date_to = request.GET.get('date_to', '')
+  date_from = _valid_date(request.GET.get('date_from', ''))
+  date_to = _valid_date(request.GET.get('date_to', ''))
   if date_from:
     qs = qs.filter(checked_in_at__date__gte=date_from)
   if date_to:
@@ -76,8 +80,22 @@ def visitor_list(request):
   sort = request.GET.get('sort', '-checked_in_at')
   order_by = SORT_FIELDS.get(sort, '-checked_in_at')
     
+  visitors_qs = qs.order_by(order_by)
+
+  # ライブ検索（AJAXリクエスト）は行HTMLとカウントだけ返す
+  if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    rows_html = render_to_string(
+      'visitors/staff/visitor_list_rows.html',
+      {'visitors': visitors_qs},
+      request=request,
+    )
+    return JsonResponse({
+      'count': visitors_qs.count(),
+      'html': rows_html,
+    })
+
   return render(request, 'visitors/staff/visitor_list.html', {
-    'visitors': qs.order_by(order_by),
+    'visitors': visitors_qs,
     'sort': sort,
     'active_filters': active_filters,
     'date_from': date_from,
@@ -85,3 +103,17 @@ def visitor_list(request):
     'sort_name_next': '-visitor_name' if sort == 'visitor_name' else 'visitor_name',
     'sort_date_next': 'checked_in_at'  if sort == '-checked_in_at' else '-checked_in_at',
   })
+  
+# 不正な日付文字列を無視するバリデーション
+def _valid_date(val):
+    """YYYY-MM-DD 形式でない場合は空文字を返す"""
+    try:
+        datetime.strptime(val, '%Y-%m-%d')
+        return val
+    except (ValueError, TypeError):
+        return ''
+  
+# ログアウト
+def staff_logout(request):
+    logout(request)
+    return redirect(settings.LOGIN_URL)

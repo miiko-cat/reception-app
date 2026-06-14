@@ -5,11 +5,12 @@
 
   <div class="sheet-toolbar">
     <span class="sheet-title">来訪者一覧</span>
-    <span class="sheet-count">{{ visitors|length }} 件</span>
+    <span class="sheet-count" id="visitor-count">{{ visitors|length }}</span> 件
     <button type="submit" form="filter-form">検索</button>
     <a href="{% url 'staff_visitor_list' %}" class="btn-link">クリア</a>
     <a href="{% url 'staff_logout' %}" class="btn-link logout">ログアウト</a>
   </div>
+
   <form method="get" id="filter-form">
     <div class="sheet-wrap">
       <table class="excel-sheet">
@@ -39,34 +40,87 @@
           </tr>
           <!-- 2行目: フィルター行 -->
           <tr class="filter-row">
-            <th></th>
-            <th><input name="visitor_name" value="{{ active_filters.visitor_name }}" placeholder="含む"></th>
-            <th><input name="visit_purpose" value="{{ active_filters.visit_purpose }}" placeholder="含む"></th>
-            <th><input name="phone_number" value="{{ active_filters.phone_number }}" placeholder="含む"></th>
-            <th><input name="email" value="{{ active_filters.email }}" placeholder="含む"></th>
+            <th>検索欄</th>
+            <th><input name="visitor_name" value="{{ active_filters.visitor_name }}"></th>
+            <th><input name="visit_purpose" value="{{ active_filters.visit_purpose }}"></th>
+            <th><input name="phone_number" value="{{ active_filters.phone_number }}"></th>
+            <th><input name="email" value="{{ active_filters.email }}"></th>
             <th class="date-filter">
-              <input type="date" name="date_from" value="{{ date_from }}">
-              〜
-              <input type="date" name="date_to" value="{{ date_to }}">
+              <div class="date-range-item">
+                <span class="date-range-label">から</span>
+                <input type="date" name="date_from" value="{{ date_from }}">
+              </div>
+              <div class="date-range-item">
+                <span class="date-range-label">まで</span>
+                <input type="date" name="date_to" value="{{ date_to }}">
+              </div>
             </th>
           </tr>
         </thead>
-        <tbody>
-          {% for v in visitors %}
-          <tr>
-            <td class="col-no">{{ forloop.counter }}</td>
-            <td>{{ v.visitor_name }}</td>
-            <td class="truncate" title="{{ v.visit_purpose }}">{{ v.visit_purpose }}</td>
-            <td>{{ v.phone_number|default:"" }}</td>
-            <td>{{ v.email|default:"" }}</td>
-            <td class="datetime">{{ v.checked_in_at|date:"Y/m/d H:i" }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6" class="empty">該当データがありません</td></tr>
-          {% endfor %}
+        {# id を付けてJS からテーブル行を差し替えできるようにする #}
+        <tbody id="visitor-tbody">
+          {% include "visitors/staff/visitor_list_rows.html" %}
         </tbody>
       </table>
     </div>
   </form>
+
+<script>
+  (function () {
+    function debounce(fn, delay) {
+      let timer;
+      return function () { clearTimeout(timer); timer = setTimeout(fn, delay); };
+    }
+
+    const tbody   = document.getElementById('visitor-tbody');
+    const countEl = document.getElementById('visitor-count');
+
+    // 入力値あり/なしで has-value クラスを切り替える
+    function syncHasValue(input) {
+      input.classList.toggle('has-value', !!input.value);
+    }
+
+    function doSearch() {
+      const params = new URLSearchParams(new FormData(document.getElementById('filter-form')));
+      const currentSort = new URLSearchParams(window.location.search).get('sort');
+      if (currentSort) params.set('sort', currentSort);
+
+      tbody.classList.add('is-loading');
+
+      fetch('?' + params.toString(), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(r => r.json())
+      .then(data => {
+        tbody.innerHTML   = data.html;
+        countEl.textContent = data.count;
+      })
+      .catch(err => console.error('検索エラー:', err))
+      .finally(() => tbody.classList.remove('is-loading'));
+    }
+
+    const debouncedSearch = debounce(doSearch, 350);
+
+    // 全フィルター入力の初期化＋イベント登録
+    document.querySelectorAll('#filter-form input').forEach(function (input) {
+      syncHasValue(input);  // ページ読み込み時（戻ってきた場合など）にも反映
+      const eventType = input.type === 'date' ? 'change' : 'input';
+      input.addEventListener(eventType, function () {
+        syncHasValue(this);
+        debouncedSearch();
+      });
+    });
+
+    // Escape で全フィルタークリア
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      document.querySelectorAll('#filter-form input').forEach(function (input) {
+        input.value = '';
+        syncHasValue(input);
+      });
+      debouncedSearch();
+    });
+  })();
+</script>
 
 {% endblock %}
