@@ -139,6 +139,103 @@
             color: #888;
             padding: 24px;
         }
+        
+        /* ── ツールバー固定 ── */
+        .sheet-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* ── 絞込み中バッジ ── */
+        .filter-badge {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 11px;
+            display: none;
+        }
+        .filter-badge.visible { display: inline; }
+
+        /* ── CSVエクスポートボタン ── */
+        .btn-export {
+            padding: 3px 10px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 3px;
+            color: #fff;
+            font-size: 12px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .btn-export:hover { background: rgba(255,255,255,0.28); color: #fff; }
+
+        /* ── フィルター有効列のヘッダー強調 ── */
+        .header-row th.col-filtered { background: #b7d7a8; }
+        .header-row th.col-filtered a { color: #1a5c35; font-weight: 700; }
+
+        /* ── × クリアボタン付きラッパー ── */
+        .filter-cell {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .filter-cell input { flex: 1; padding-right: 18px; }
+        .clear-btn {
+            position: absolute;
+            right: 3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 13px;
+            padding: 0;
+            line-height: 1;
+            display: none;
+            user-select: none;
+        }
+        .clear-btn.visible { display: block; }
+        .clear-btn:hover { color: #555; }
+
+        /* ── 日付 From/To ラベル ── */
+        .date-range-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 2px;
+        }
+        .date-range-item:last-child { margin-bottom: 0; }
+        .date-range-label {
+            font-size: 10px;
+            color: #888;
+            min-width: 22px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .date-filter { overflow: visible; }
+        .date-filter input[type="date"] { display: block; width: 100%; box-sizing: border-box; }
+
+        /* ── 入力済みフィルターのハイライト ── */
+        .filter-row input.has-value { border-color: #217346; background: #eaf5ee; }
+
+        /* ── 検索中ローディング ── */
+        #visitor-tbody.is-loading { opacity: 0.35; pointer-events: none; }
+
+        /* ── 空状態 ── */
+        .empty { text-align: center; color: #888; padding: 32px; }
+        .clear-all-btn {
+            margin-left: 12px;
+            padding: 4px 12px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #555;
+        }
+        .clear-all-btn:hover { background: #f5f5f5; }
     </style>
 </head>
 <body>

@@ -14,4 +14,7 @@ urlpatterns = [
     ), name='staff_login'),
     path('staff/visitors/', visitors_views.visitor_list, name='staff_visitor_list'),
     path('staff/logout/', visitors_views.staff_logout, name='staff_logout'),
+    
+    # CSVエクスポート
+    path('staff/visitors/export/', visitors_views.visitor_export_csv, name='staff_visitor_export'),
 ]
