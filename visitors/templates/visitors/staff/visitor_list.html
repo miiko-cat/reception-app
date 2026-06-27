@@ -1,0 +1,252 @@
+{% extends "visitors/staff/base_staff.html" %}
+{% load query_tags %}
+
+{% block content %}
+
+<div class="sheet-toolbar">
+  <span class="sheet-title">来訪者一覧</span>
+  <span id="visitor-count">{{ visitors|length }}</span> 件
+  <span id="filter-badge" class="filter-badge">絞込み中</span>
+  <button type="submit" form="filter-form">検索</button>
+  <a href="{% url 'staff_visitor_list' %}" class="btn-link">クリア</a>
+  <a href="?{% query_string show_all=show_all_next %}" class="btn-link" id="show-all-toggle">
+    {% if show_all %}削除済みを除いて表示{% else %}すべて表示（削除済みを含む）{% endif %}
+  </a>
+  <a href="{% url 'staff_logout' %}" class="btn-link logout">ログアウト</a>
+  <span style="flex:1"></span>
+  <a id="csv-export-link"
+     href="{% url 'staff_visitor_export' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+     class="btn-export">📥 CSV</a>
+</div>
+
+<form method="get" id="filter-form">
+  <div class="sheet-wrap">
+    <table class="excel-sheet">
+      <thead>
+        <tr class="header-row">
+          <th class="col-no">#</th>
+          <th data-col="visitor_name">
+            <a href="?{% query_string sort=sort_name_next %}">
+              来訪者名
+              {% if sort == 'visitor_name' %}▲{% elif sort == '-visitor_name' %}▼{% endif %}
+            </a>
+          </th>
+          <th data-col="visit_purpose">来訪目的</th>
+          <th data-col="phone_number">電話番号</th>
+          <th data-col="email">メール</th>
+          <th data-col="date">
+            <a href="?{% query_string sort=sort_date_next %}">
+              受付日時
+              {% if sort == '-checked_in_at' %}▼{% elif sort == 'checked_in_at' %}▲{% endif %}
+            </a>
+          </th>
+          <th class="col-action">操作</th>
+        </tr>
+        <tr class="filter-row">
+          <th></th>
+          <th>
+            <div class="filter-cell">
+              <input name="visitor_name" value="{{ active_filters.visitor_name }}" placeholder="含む">
+              <button type="button" class="clear-btn" data-target="visitor_name">×</button>
+            </div>
+          </th>
+          <th>
+            <div class="filter-cell">
+              <input name="visit_purpose" value="{{ active_filters.visit_purpose }}" placeholder="含む">
+              <button type="button" class="clear-btn" data-target="visit_purpose">×</button>
+            </div>
+          </th>
+          <th>
+            <div class="filter-cell">
+              <input name="phone_number" value="{{ active_filters.phone_number }}" placeholder="含む">
+              <button type="button" class="clear-btn" data-target="phone_number">×</button>
+            </div>
+          </th>
+          <th>
+            <div class="filter-cell">
+              <input name="email" value="{{ active_filters.email }}" placeholder="含む">
+              <button type="button" class="clear-btn" data-target="email">×</button>
+            </div>
+          </th>
+          <th class="date-filter">
+            <div class="date-range-item">
+              <input type="date" name="date_from" value="{{ date_from }}">
+              <span class="date-range-label">から</span>
+            </div>
+            <div class="date-range-item">
+              <input type="date" name="date_to" value="{{ date_to }}">
+              <span class="date-range-label">まで</span>
+            </div>
+          </th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="visitor-tbody">
+        {% include "visitors/staff/visitor_list_rows.html" %}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<script>
+(function () {
+
+  /* ── ユーティリティ ─────────────────── */
+  function debounce(fn, delay) {
+    let t;
+    return function () { clearTimeout(t); t = setTimeout(fn, delay); };
+  }
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : '';
+  }
+
+  const tbody   = document.getElementById('visitor-tbody');
+  const countEl = document.getElementById('visitor-count');
+  const badge   = document.getElementById('filter-badge');
+  const csvLink = document.getElementById('csv-export-link');
+
+  /* ── 入力状態の同期（has-value / × ボタン） ─── */
+  function syncInput(input) {
+    const has = !!input.value;
+    input.classList.toggle('has-value', has);
+    const btn = input.closest('.filter-cell') &&
+                input.closest('.filter-cell').querySelector('.clear-btn');
+    if (btn) btn.classList.toggle('visible', has);
+  }
+
+  /* ── ヘッダー列の強調 ─────────────────── */
+  const colHeaders = {
+    visitor_name:  document.querySelector('th[data-col="visitor_name"]'),
+    visit_purpose: document.querySelector('th[data-col="visit_purpose"]'),
+    phone_number:  document.querySelector('th[data-col="phone_number"]'),
+    email:         document.querySelector('th[data-col="email"]'),
+    date:          document.querySelector('th[data-col="date"]'),
+  };
+  function updateHeaders() {
+    const vals = {
+      visitor_name:  document.querySelector('[name="visitor_name"]').value,
+      visit_purpose: document.querySelector('[name="visit_purpose"]').value,
+      phone_number:  document.querySelector('[name="phone_number"]').value,
+      email:         document.querySelector('[name="email"]').value,
+      date:          document.querySelector('[name="date_from"]').value ||
+                     document.querySelector('[name="date_to"]').value,
+    };
+    Object.entries(colHeaders).forEach(([col, th]) => {
+      if (th) th.classList.toggle('col-filtered', !!vals[col]);
+    });
+  }
+
+  /* ── 絞込み中バッジ ─────────────────── */
+  function updateBadge() {
+    const active = Array.from(document.querySelectorAll('#filter-form input')).some(i => i.value);
+    badge.classList.toggle('visible', active);
+  }
+
+  /* ── AJAX 検索 ──────────────────────── */
+  function doSearch() {
+    const params = new URLSearchParams(new FormData(document.getElementById('filter-form')));
+    const currentParams = new URLSearchParams(window.location.search);
+
+    const sort   = new URLSearchParams(window.location.search).get('sort');
+    if (sort) params.set('sort', sort);
+
+    // show_all はフォームの項目ではないので、URLから引き継ぐ
+    const showAll = currentParams.get('show_all');
+    if (showAll) params.set('show_all', showAll);
+
+    tbody.classList.add('is-loading');
+
+    fetch('?' + params.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.json())
+      .then(data => {
+        tbody.innerHTML    = data.html;
+        countEl.textContent = data.count;
+        updateBadge();
+        updateHeaders();
+        // CSV リンクを現在のフィルターに追随させる
+        if (csvLink) {
+          const base = csvLink.href.split('?')[0];
+          csvLink.href = base + (params.toString() ? '?' + params.toString() : '');
+        }
+      })
+      .catch(err => console.error('検索エラー:', err))
+      .finally(() => tbody.classList.remove('is-loading'));
+  }
+
+  const debouncedSearch = debounce(doSearch, 350);
+
+  /* ── 全フィルタークリア（空状態ボタンから呼ぶ） ─ */
+  window.clearAllFilters = function () {
+    document.querySelectorAll('#filter-form input').forEach(input => {
+      input.value = '';
+      syncInput(input);
+    });
+    debouncedSearch();
+  };
+
+  // 削除/復元ボタン押下時のAJAX送信
+  function toggleDelete(visitorId) {
+    fetch(`/staff/visitors/${visitorId}/toggle-delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+      .then(r => r.json())
+      .then(() => doSearch())  // 一覧を再取得して見た目を最新化
+      .catch(err => {
+        console.error('削除状態の切り替えに失敗しました:', err);
+        alert('更新に失敗しました。もう一度お試しください。');
+      })
+  }
+
+  /* ── イベント登録 ────────────────────── */
+
+  // 各フィルター入力
+  document.querySelectorAll('#filter-form input').forEach(input => {
+    syncInput(input); // 初期値の反映
+    const ev = input.type === 'date' ? 'change' : 'input';
+    input.addEventListener(ev, function () {
+      syncInput(this);
+      debouncedSearch();
+    });
+  });
+
+  // × クリアボタン
+  document.querySelectorAll('.clear-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const input = document.querySelector(`[name="${this.dataset.target}"]`);
+      if (!input) return;
+      input.value = '';
+      syncInput(input);
+      debouncedSearch();
+    });
+  });
+
+  // Escape で全フィルタークリア
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') window.clearAllFilters();
+  });
+  
+  // tbodyはAJAXで丸ごと再生成されるため、イベント委譲で拾う
+  tbody.addEventListener('click', function (e) {
+    const delBtn = e.target.closest('.btn-delete');
+    const resBtn = e.target.closest('.btn-restore');
+    if (delBtn) {
+      if (!confirm('この来訪者データを削除（一覧から非表示に）しますか?')) return;
+      toggleDelete(delBtn.dataset.id);
+    } else if (resBtn) {
+      toggleDelete(resBtn.dataset.id);
+    }
+  });
+
+  // 初期状態の反映
+  updateBadge();
+  updateHeaders();
+
+})();
+</script>
+
+{% endblock %}

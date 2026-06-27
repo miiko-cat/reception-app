@@ -1,0 +1,36 @@
+{% extends "visitors/staff/base_staff.html" %}
+
+{% block title %}スタッフログイン{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-card-header">
+      <div class="login-icon">🔒</div>
+      <h1>来訪者管理システム</h1>
+      <p>スタッフ専用ログイン</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="login-error">
+      {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="login-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="{{ form.username.id_for_label }}">ユーザー名</label>
+        {{ form.username }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.password.id_for_label }}">パスワード</label>
+        {{ form.password }}
+      </div>
+      <button type="submit" class="login-btn">ログイン</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
