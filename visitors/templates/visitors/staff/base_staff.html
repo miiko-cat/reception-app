@@ -139,7 +139,7 @@
             color: #888;
             padding: 24px;
         }
-        
+
         /* ── ツールバー固定 ── */
         .sheet-toolbar {
             position: sticky;
@@ -236,6 +236,123 @@
             color: #555;
         }
         .clear-all-btn:hover { background: #f5f5f5; }
+
+        /* ── ログイン画面 ── */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 360px;
+            overflow: hidden;
+        }
+        .login-card-header {
+            background: #217346;
+            color: #fff;
+            padding: 28px 24px 20px;
+            text-align: center;
+        }
+        .login-card-header .login-icon {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+        .login-card-header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 4px;
+        }
+        .login-card-header p {
+            font-size: 12px;
+            margin: 0;
+            opacity: 0.85;
+        }
+        .login-error {
+            background: #fdecea;
+            color: #b3261e;
+            border: 1px solid #f5c6c4;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 12px;
+            margin: 16px 24px 0;
+        }
+        .login-error p { margin: 0; }
+
+        .login-form { padding: 24px; }
+        .login-form .form-group { margin-bottom: 16px; }
+        .login-form label {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .login-form input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .login-form input:focus {
+            outline: none;
+            border-color: #217346;
+            box-shadow: 0 0 0 2px rgba(33,115,70,0.15);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background: #217346;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .login-btn:hover { background: #1a5c38; }
+
+        /* ── 論理削除 列・行 ── */
+        .col-action {
+            width: 70px;
+            text-align: center;
+        }
+        .excel-sheet tbody tr.row-deleted {
+            opacity: 0.45;
+            background: #efefef;
+        }
+        .excel-sheet tbody tr.row-deleted:hover {
+            background: #e8e8e8;
+        }
+        .btn-delete,
+        .btn-restore {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-delete {
+            background: #fdecea;
+            border: 1px solid #f0b3ad;
+            color: #a93226;
+        }
+        .btn-delete:hover { background: #fbd9d4; }
+        .btn-restore {
+            background: #eaf5ee;
+            border: 1px solid #9fd9b4;
+            color: #1a7a44;
+        }
+        .btn-restore:hover { background: #d9f0e1; }
     </style>
 </head>
 <body>

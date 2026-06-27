@@ -1,15 +1,22 @@
 {% for v in visitors %}
-<tr>
+<tr class="{% if v.is_deleted %}row-deleted{% endif %}" data-visitor-id="{{ v.id }}">
   <td class="col-no">{{ forloop.counter }}</td>
   <td>{{ v.visitor_name }}</td>
   <td class="truncate" title="{{ v.visit_purpose }}">{{ v.visit_purpose }}</td>
   <td>{{ v.phone_number|default:"" }}</td>
   <td>{{ v.email|default:"" }}</td>
   <td class="datetime">{{ v.checked_in_at|date:"Y/m/d H:i" }}</td>
+  <td class="col-action">
+    {% if v.is_deleted %}
+      <button type="button" class="btn-restore" data-id="{{ v.id }}">復元</button>
+    {% else %}
+      <button type="button" class="btn-delete" data-id="{{ v.id }}">削除</button>
+    {% endif %}
+  </td>
 </tr>
 {% empty %}
 <tr>
-  <td colspan="6" class="empty">
+  <td colspan="7" class="empty">
     🔍 該当データがありません
     <button type="button" class="clear-all-btn" onclick="clearAllFilters()">
       フィルターをクリア

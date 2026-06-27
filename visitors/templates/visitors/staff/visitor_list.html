@@ -9,6 +9,9 @@
   <span id="filter-badge" class="filter-badge">絞込み中</span>
   <button type="submit" form="filter-form">検索</button>
   <a href="{% url 'staff_visitor_list' %}" class="btn-link">クリア</a>
+  <a href="?{% query_string show_all=show_all_next %}" class="btn-link" id="show-all-toggle">
+    {% if show_all %}削除済みを除いて表示{% else %}すべて表示（削除済みを含む）{% endif %}
+  </a>
   <a href="{% url 'staff_logout' %}" class="btn-link logout">ログアウト</a>
   <span style="flex:1"></span>
   <a id="csv-export-link"
@@ -37,6 +40,7 @@
               {% if sort == '-checked_in_at' %}▼{% elif sort == 'checked_in_at' %}▲{% endif %}
             </a>
           </th>
+          <th class="col-action">操作</th>
         </tr>
         <tr class="filter-row">
           <th></th>
@@ -74,6 +78,7 @@
               <span class="date-range-label">まで</span>
             </div>
           </th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="visitor-tbody">
@@ -90,6 +95,10 @@
   function debounce(fn, delay) {
     let t;
     return function () { clearTimeout(t); t = setTimeout(fn, delay); };
+  }
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : '';
   }
 
   const tbody   = document.getElementById('visitor-tbody');
@@ -137,8 +146,14 @@
   /* ── AJAX 検索 ──────────────────────── */
   function doSearch() {
     const params = new URLSearchParams(new FormData(document.getElementById('filter-form')));
+    const currentParams = new URLSearchParams(window.location.search);
+
     const sort   = new URLSearchParams(window.location.search).get('sort');
     if (sort) params.set('sort', sort);
+
+    // show_all はフォームの項目ではないので、URLから引き継ぐ
+    const showAll = currentParams.get('show_all');
+    if (show_all) params.set('show_all', showAll);
 
     tbody.classList.add('is-loading');
 
@@ -170,6 +185,23 @@
     debouncedSearch();
   };
 
+  // 削除/復元ボタン押下時のAJAX送信
+  function toggleDelete(visitorId) {
+    fetch(`/staff/visitors/${visitorId}/toggle-delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+      .then(r => r.json())
+      .then(() => doSearch())  // 一覧を再取得して見た目を最新化
+      .catch(err => {
+        console.error('削除状態の切り替えに失敗しました:', err);
+        alert('更新に失敗しました。もう一度お試しください。');
+      })
+  }
+
   /* ── イベント登録 ────────────────────── */
 
   // 各フィルター入力
@@ -197,7 +229,19 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') window.clearAllFilters();
   });
-
+  
+  // tbodyはAJAXで丸ごと再生成されるため、イベント委譲で拾う
+  tbody.addEventListener('click', function (e) {
+    const delBtn = e.target.closest('.btn-delete');
+    const resBtn = e.target.closest('.btn-restore');
+    if (delBtn) {
+      if (!confirm('この来訪者データを削除（一覧から非表示に）しますか?')) return;
+      toggleDelete(delBtn.dataset.id);
+    } else if (resBtn) {
+      toggleDelete(resBtn.dataset.id);
+    }
+  });
+  
   // 初期状態の反映
   updateBadge();
   updateHeaders();
