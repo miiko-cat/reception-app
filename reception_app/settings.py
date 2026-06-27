@@ -28,9 +28,11 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = 'django-insecure-laci8ynk%6_r6m(_w+rk60f!43rt17b2y(%_(j*cxz&s+f^h!c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 環境変数から真偽値を読み込み、指定がなければ本番安全な False にする
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+# 環境変数からカンマ区切りのリストを読み込み、なければローカル環境を許可する
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 
 # Application definition
@@ -118,6 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # 受付担当画面

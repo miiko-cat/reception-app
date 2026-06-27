@@ -7,3 +7,6 @@ __pycache__/
 
 # 仮想環境フォルダ
 venv/
+
+# 静的ファイル
+staticfiles/
