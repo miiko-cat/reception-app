@@ -141,6 +141,10 @@ def visitor_export_csv(request):
         ])
     return response
 
+
+@login_required
+@user_passes_test(is_reception_staff)
+@require_POST
 def visitor_toggle_delete(request, visitor_id):
     """来訪者の論理削除フラグをON/OFFする(行内ボタンからのAJAX専用)"""
     visitor = get_object_or_404(Visitor, id=visitor_id)

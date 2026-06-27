@@ -153,7 +153,7 @@
 
     // show_all はフォームの項目ではないので、URLから引き継ぐ
     const showAll = currentParams.get('show_all');
-    if (show_all) params.set('show_all', showAll);
+    if (showAll) params.set('show_all', showAll);
 
     tbody.classList.add('is-loading');
 
@@ -241,7 +241,7 @@
       toggleDelete(resBtn.dataset.id);
     }
   });
-  
+
   // 初期状態の反映
   updateBadge();
   updateHeaders();
