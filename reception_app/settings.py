@@ -11,10 +11,15 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# .envファイルを読み込む
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -23,9 +28,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-laci8ynk%6_r6m(_w+rk60f!43rt17b2y(%_(j*cxz&s+f^h!c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 環境変数から真偽値を読み込み、指定がなければ本番安全な False にする
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+# 環境変数からカンマ区切りのリストを読み込み、なければローカル環境を許可する
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 
 # Application definition
@@ -37,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'visitors.apps.VisitorsConfig',
 ]
 
 MIDDLEWARE = [
@@ -73,10 +81,7 @@ WSGI_APPLICATION = 'reception_app.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db() # DATABASE_URLを自動でパース
 }
 
 
@@ -102,9 +107,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ja'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
 
@@ -115,3 +120,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+# 受付担当画面
+LOGIN_URL = '/staff/login/'
+LOGIN_REDIRECT_URL = '/staff/visitors/'
+LOGOUT_REDIRECT_URL = '/staff/login/'

@@ -1,0 +1,43 @@
+{% extends "visitors/base.html" %}
+
+{% block title %}受付入力 | Visitors{% endblock %}
+
+{% block content %}
+    <header class="text-center">
+        <h1>いらっしゃいませ。</h1>
+        <h2>受付の入力をお願いいたします。</h2>
+    </header>
+
+    <form action="/" method="post">
+        {% csrf_token %}
+        <!-- 来訪者名 -->
+        <label for="{{ form.visitor_name.id_for_label }}">
+            {{ form.visitor_name.label }}
+        </label>
+        {{ form.visitor_name }}
+        {{ form.visitor_name.errors }}
+        <!-- 電話番号（任意） -->
+        <label for="{{ form.phone_number.id_for_label }}">
+            {{ form.phone_number.label }}
+            <span class="optional">（任意）</span>
+        </label>
+        {{ form.phone_number }}
+        {{ form.phone_number.errors }}
+        <!-- メールアドレス（任意） -->
+        <label for="{{ form.email.id_for_label }}">
+            {{ form.email.label }}
+            <span class="optional">（任意）</span>
+        </label>
+        {{ form.email }}
+        {{ form.email.errors }}
+        <!-- ご用件 -->
+        <label for="{{ form.visit_purpose.id_for_label }}">
+            {{ form.visit_purpose.label }}
+        </label>
+        {{ form.visit_purpose }}
+        {{ form.visit_purpose.errors }}
+
+        <!-- 受付ボタン -->
+        <button type="submit">受付をする</button>
+    </form>
+{% endblock %}

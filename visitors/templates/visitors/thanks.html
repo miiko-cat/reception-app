@@ -1,0 +1,43 @@
+{% extends "visitors/base.html" %}
+
+{% block title %}受付完了{% endblock %}
+
+{% block extra_head %}
+    <meta http-equiv="refresh" content="10;url={% url 'home' %}" />
+{% endblock %}
+
+{% block content %}
+    <header class="text-center">
+        <h1>ご登録ありがとうございます</h1>
+        <h2>以下の内容で受付いたしました。</h2>
+    </header>
+
+    <article>
+        <dl>
+            <dt>お名前</dt>
+            <dd>{{ visitor.visitor_name }}</dd>
+
+            <dt>電話番号</dt>
+            <dd>{{ visitor.phone_number|default:"（未入力）" }}</dd>
+
+            <dt>メールアドレス</dt>
+            <dd>{{ visitor.email|default:"（未入力）" }}</dd>
+
+            <dt>ご用件</dt>
+            <dd>{{ visitor.visit_purpose }}</dd>
+        </dl>
+    </article>
+
+    <!-- リダイレクトカウント -->
+    <p class="subtitle text-center">
+        あと <span id="countdown">10</span> 秒で受付画面へ戻ります
+    </p>
+    <script>
+        let seconds = 10;
+        const el = document.getElementById("countdown");
+        setInterval(() => {
+            seconds -= 1;
+            if (el && seconds >= 0) el.textContent = seconds;
+        }, 1000);
+    </script>
+{% endblock %}
