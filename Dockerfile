@@ -8,11 +8,10 @@ ENV PYTHONUNBUFFERED=1
 # 3. コンテナ内の作業ディレクトリを設定
 WORKDIR /code
 
-# 4. データベース（PostgreSQL）の接続に必要なツール等をインストール
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && apt-get clean
+# 4. OSパッケージを最新化（ベースイメージ内の既知の脆弱性にセキュリティパッチを当てる）
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # 5. requirements.txtをコピーしてパッケージをインストール
 COPY requirements.txt /code/
@@ -21,5 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. プロジェクトのソースコードをすべてコンテナにコピー
 COPY . /code/
 
-# 7. Djangoの起動コマンド（本番用のGunicornなどを使っても良いですが、まずは使い慣れたコマンドで）
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# 7. Djangoの起動コマンド（本番用のGunicornで起動）
+CMD ["gunicorn", "reception_app.wsgi:application", "--bind", "0.0.0.0:8000"]
