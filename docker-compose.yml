@@ -2,37 +2,31 @@ services:
   # データベースの設定
   db:
     image: postgres:15
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data  # ★データの永続化設定！コンテナを消してもデータが残ります
     environment:
-      - POSTGRES_DB=reception
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres  # 本番環境では強固なパスワードにしてください
-    ports:
-      - "5432:5432"
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   # Djangoアプリの設定
   web:
     build: .
+    restart: unless-stopped
     # コンテナ起動時に「静的ファイルの集約」「マイグレーション」「起動」を自動で連続実行します
     command: >
       sh -c "python manage.py collectstatic --noinput &&
              python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+             gunicorn reception_app.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - "80:8000"  # サーバーの80番（通常のWebアクセス）をDjangoの8000番に繋ぐ
     depends_on:
       - db
-    environment:
-      - DEBUG=False  # 本番環境なので False
-      - SECRET_KEY=django-insecure-laci8ynk%6_r6m(_w+rk60f!43rt17b2y(%_(j*cxz&s+f^h!c
-      # 会社のサーバーのIPアドレスやドメインをカンマ区切りで指定（半角スペースは入れない）
-      - ALLOWED_HOSTS=localhost,127.0.0.1
-      # ★settings.pyのenv.db()が自動で解析してくれるURL形式で接続先を指定します
-      # 形式：postgres://ユーザー名:パスワード@サービス名(db):ポート番号/データベース名
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/reception
+    env_file:
+      - .env
 
 volumes:
   postgres_data:
