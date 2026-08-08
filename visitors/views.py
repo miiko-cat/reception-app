@@ -5,9 +5,10 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
@@ -16,6 +17,7 @@ from visitors.models import Visitor
 
 
 # ── 受付画面 ───────────────────────────────────────────
+@never_cache
 def home(request):
     if request.method == "POST":
         form = VisitorForm(request.POST)
@@ -27,8 +29,21 @@ def home(request):
     return render(request, "visitors/home.html", {"form": form})
 
 
+@never_cache
 def thanks(request, visitor_id):
+    visitor_id_str = str(visitor_id)
+    shown_ids = request.session.get('shown_visitor_ids', [])
+    
+    # 既に一度表示済みのIDなら、戻る/再アクセスされても中身は見せずホームへ
+    if visitor_id_str in shown_ids:
+        return redirect('home')
+    
     visitor = get_object_or_404(Visitor, id=visitor_id, is_deleted=False)
+    
+    shown_ids.append(visitor_id_str)
+    # セッションが際限なく肥大化しないよう直近分だけ保持
+    request.session['shown_visitor_ids'] = shown_ids[-20:]
+    
     return render(request, "visitors/thanks.html", {"visitor": visitor})
 
 

@@ -8,7 +8,7 @@
         <h2>受付の入力をお願いいたします。</h2>
     </header>
 
-    <form action="/" method="post">
+    <form action="/" method="post" autocomplete="off">
         {% csrf_token %}
         <!-- 来訪者名 -->
         <label for="{{ form.visitor_name.id_for_label }}">
