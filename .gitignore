@@ -10,3 +10,6 @@ venv/
 
 # 静的ファイル
 staticfiles/
+
+# ngixの証明書
+nginx/certs/

@@ -29,5 +29,14 @@
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+    <script>
+        // bfcache（戻る/進むキャッシュ）から復元された場合、
+        // 前回来訪者の個人情報が再表示されないよう即座に受付画面へ遷移する
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted) {
+                location.replace("{% url 'home' %}");
+           }
+        });
+    </script>
 </body>
 </html>
