@@ -21,12 +21,25 @@ services:
              gunicorn reception_app.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
-    ports:
-      - "80:8000"  # サーバーの80番（通常のWebアクセス）をDjangoの8000番に繋ぐ
+    expose:
+      - "8000"  # コンテナ間(nginx→web)にのみ公開。ホストPCやLANからは直接繋がらない
     depends_on:
       - db
     env_file:
       - .env
+
+  # リバースプロキシ(TLS終端)
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    ports:
+      - "80:80"    # HTTP(自動的に443へリダイレクトされる)
+      - "443:443"  # HTTPS
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

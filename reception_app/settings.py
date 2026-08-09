@@ -34,6 +34,23 @@ DEBUG = env.bool('DEBUG', default=False)
 # 環境変数からカンマ区切りのリストを読み込み、なければローカル環境を許可する
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
+# HTTPS(本番運用向け)
+# nginxなどのリバースプロキシがTLSを終端した場合、このヘッダーで
+# 「元のリクエストはHTTPSだった」ことをDjangoに伝える(nginx.conf側で
+# proxy_set_header X-Forwarded-Proto https; を設定している前提)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# HTTPアクセスを自動でHTTPSへリダイレクトする(開発環境では.envでFalseにできる)
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+
+# HTTPS接続時のみCookieを送信する(セッション・CSRFトークンの盗聴防止)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+
+# Django 4.0以降、CSRF検証にOriginヘッダーが使われるため、
+# HTTPSでアクセスするオリジンを明示的に信頼する必要がある
+# 例: CSRF_TRUSTED_ORIGINS=https://reception.internal
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 # Application definition
 
