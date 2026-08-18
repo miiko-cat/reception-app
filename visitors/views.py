@@ -72,6 +72,7 @@ def _build_visitor_qs(request):
 
     for param, lookup in {
         'visitor_name': 'visitor_name__icontains',
+        'organization_name': 'organization_name__icontains',
         'visit_purpose': 'visit_purpose__icontains',
         'phone_number': 'phone_number__icontains',
         'email': 'email__icontains',
@@ -144,10 +145,11 @@ def visitor_export_csv(request):
     response['Content-Disposition'] = 'attachment; filename="visitors.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['来訪者名', '来訪目的', '電話番号', 'メール', '受付日時', '状態'])
+    writer.writerow(['来訪者名', '組織名', '来訪目的', '電話番号', 'メール', '受付日時', '状態'])
     for v in qs.order_by('-checked_in_at'):
         writer.writerow([
             v.visitor_name,
+            v.organization_name or '',
             v.visit_purpose,
             v.phone_number or '',
             v.email or '',

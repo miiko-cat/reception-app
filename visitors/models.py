@@ -1,7 +1,20 @@
 import uuid
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
+# 電話番号：半角数字とハイフンのみ許可
+phone_number_validator = RegexValidator(
+  regex=r'^[0-9\-]*$',
+  message='電話番号は半角数字とハイフン（-）のみ入力できます。'
+)
+
+# メールアドレス：全角文字を禁止（半角の印字可能文字のみ許可）
+email_halfwidth_validator = RegexValidator(
+  regex=r'^[\x20-\x7E]*$',
+  message='メールアドレスは半角文字のみ入力できます。'
+)
+ 
 
 class Visitor(models.Model):
   id = models.UUIDField(
@@ -14,6 +27,12 @@ class Visitor(models.Model):
     max_length=100,
     verbose_name='来訪者名'
   )
+  organization_name = models.CharField(
+    max_length=255,
+    null=True,
+    blank=True,
+    verbose_name='組織名'
+  )
   visit_purpose = models.CharField(
     max_length=255,
     verbose_name='来訪目的'
@@ -22,13 +41,15 @@ class Visitor(models.Model):
     max_length=20,
     null=True,
     blank=True,
-    verbose_name='電話番号'
+    verbose_name='電話番号',
+    validators=[phone_number_validator]
   )
   email = models.CharField(
     max_length=255,
     null=True,
     blank=True,
-    verbose_name='メールアドレス'
+    verbose_name='メールアドレス',
+    validators=[email_halfwidth_validator]
   )
   checked_in_at = models.DateTimeField(
     default=timezone.now,

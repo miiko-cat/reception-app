@@ -2,6 +2,7 @@
 <tr class="{% if v.is_deleted %}row-deleted{% endif %}" data-visitor-id="{{ v.id }}">
   <td class="col-no">{{ forloop.counter }}</td>
   <td>{{ v.visitor_name }}</td>
+  <td>{{ v.organization_name|default:"" }}</td>
   <td class="truncate" title="{{ v.visit_purpose }}">{{ v.visit_purpose }}</td>
   <td>{{ v.phone_number|default:"" }}</td>
   <td>{{ v.email|default:"" }}</td>
@@ -16,7 +17,7 @@
 </tr>
 {% empty %}
 <tr>
-  <td colspan="7" class="empty">
+  <td colspan="8" class="empty">
     🔍 該当データがありません
     <button type="button" class="clear-all-btn" onclick="clearAllFilters()">
       フィルターをクリア

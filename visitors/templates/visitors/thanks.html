@@ -17,6 +17,9 @@
             <dt>お名前</dt>
             <dd>{{ visitor.visitor_name }}</dd>
 
+            <dt>組織名</dt>
+            <dd>{{ visitor.organization_name|default:"（未入力）" }}</dd>
+
             <dt>電話番号</dt>
             <dd>{{ visitor.phone_number|default:"（未入力）" }}</dd>
 
@@ -32,6 +35,12 @@
     <p class="subtitle text-center">
         あと <span id="countdown">10</span> 秒で受付画面へ戻ります
     </p>
+
+    <!-- すぐ戻るボタン -->
+    <p class="text-center">
+        <a href="{% url 'home' %}" role="button">今すぐ受付画面に戻る</a>
+    </p>
+    
     <script>
         let seconds = 10;
         const el = document.getElementById("countdown");
