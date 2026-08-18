@@ -8,7 +8,7 @@
   <span id="visitor-count">{{ visitors|length }}</span> 件
   <span id="filter-badge" class="filter-badge">絞込み中</span>
   <button type="submit" form="filter-form">検索</button>
-  <a href="{% url 'staff_visitor_list' %}" class="btn-link">クリア</a>
+  <a href="{% url 'staff_visitor_list' %}" class="btn-link">フィルターをクリア</a>
   <a href="?{% query_string show_all=show_all_next %}" class="btn-link" id="show-all-toggle">
     {% if show_all %}削除済みを除いて表示{% else %}すべて表示（削除済みを含む）{% endif %}
   </a>
@@ -16,38 +16,26 @@
   <span style="flex:1"></span>
   <a id="csv-export-link"
      href="{% url 'staff_visitor_export' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-     class="btn-export">📥 CSV</a>
+     class="btn-export"
+     data-tooltip="現在表示されているレコードをCSVとして出力します">📥 CSV</a>
 </div>
 
 <form method="get" id="filter-form">
   <div class="sheet-wrap">
     <table class="excel-sheet">
       <thead>
-        <tr class="header-row">
-          <th class="col-no">#</th>
-          <th data-col="visitor_name">
-            <a href="?{% query_string sort=sort_name_next %}">
-              来訪者名
-              {% if sort == 'visitor_name' %}▲{% elif sort == '-visitor_name' %}▼{% endif %}
-            </a>
-          </th>
-          <th data-col="visit_purpose">来訪目的</th>
-          <th data-col="phone_number">電話番号</th>
-          <th data-col="email">メール</th>
-          <th data-col="date">
-            <a href="?{% query_string sort=sort_date_next %}">
-              受付日時
-              {% if sort == '-checked_in_at' %}▼{% elif sort == 'checked_in_at' %}▲{% endif %}
-            </a>
-          </th>
-          <th class="col-action">操作</th>
-        </tr>
         <tr class="filter-row">
-          <th></th>
+          <th class="col-no">フィルター</th>
           <th>
             <div class="filter-cell">
               <input name="visitor_name" value="{{ active_filters.visitor_name }}" placeholder="含む">
               <button type="button" class="clear-btn" data-target="visitor_name">×</button>
+            </div>
+          </th>
+          <th>
+            <div class="filter-cell">
+              <input name="organization_name" value="{{ active_filters.organization_name }}" placeholder="含む">
+              <button type="button" class="clear-btn" data-target="organization_name">×</button>
             </div>
           </th>
           <th>
@@ -79,6 +67,26 @@
             </div>
           </th>
           <th></th>
+        </tr>
+        <tr class="header-row">
+          <th class="col-no">#</th>
+          <th data-col="visitor_name">
+            <a href="?{% query_string sort=sort_name_next %}">
+              来訪者名
+              {% if sort == 'visitor_name' %}▲{% elif sort == '-visitor_name' %}▼{% endif %}
+            </a>
+          </th>
+          <th data-col="organization_name">組織名</th>
+          <th data-col="visit_purpose">来訪目的</th>
+          <th data-col="phone_number">電話番号</th>
+          <th data-col="email">メール</th>
+          <th data-col="date">
+            <a href="?{% query_string sort=sort_date_next %}">
+              受付日時
+              {% if sort == '-checked_in_at' %}▼{% elif sort == 'checked_in_at' %}▲{% endif %}
+            </a>
+          </th>
+          <th class="col-action">操作</th>
         </tr>
       </thead>
       <tbody id="visitor-tbody">
@@ -117,20 +125,22 @@
 
   /* ── ヘッダー列の強調 ─────────────────── */
   const colHeaders = {
-    visitor_name:  document.querySelector('th[data-col="visitor_name"]'),
-    visit_purpose: document.querySelector('th[data-col="visit_purpose"]'),
-    phone_number:  document.querySelector('th[data-col="phone_number"]'),
-    email:         document.querySelector('th[data-col="email"]'),
-    date:          document.querySelector('th[data-col="date"]'),
+    visitor_name:      document.querySelector('th[data-col="visitor_name"]'),
+    organization_name: document.querySelector('th[data-col="organization_name"]'),
+    visit_purpose:     document.querySelector('th[data-col="visit_purpose"]'),
+    phone_number:      document.querySelector('th[data-col="phone_number"]'),
+    email:             document.querySelector('th[data-col="email"]'),
+    date:              document.querySelector('th[data-col="date"]'),
   };
   function updateHeaders() {
     const vals = {
-      visitor_name:  document.querySelector('[name="visitor_name"]').value,
-      visit_purpose: document.querySelector('[name="visit_purpose"]').value,
-      phone_number:  document.querySelector('[name="phone_number"]').value,
-      email:         document.querySelector('[name="email"]').value,
-      date:          document.querySelector('[name="date_from"]').value ||
-                     document.querySelector('[name="date_to"]').value,
+      visitor_name:      document.querySelector('[name="visitor_name"]').value,
+      organization_name: document.querySelector('[name="organization_name"]').value,
+      visit_purpose:     document.querySelector('[name="visit_purpose"]').value,
+      phone_number:      document.querySelector('[name="phone_number"]').value,
+      email:             document.querySelector('[name="email"]').value,
+      date:              document.querySelector('[name="date_from"]').value ||
+                         document.querySelector('[name="date_to"]').value,
     };
     Object.entries(colHeaders).forEach(([col, th]) => {
       if (th) th.classList.toggle('col-filtered', !!vals[col]);

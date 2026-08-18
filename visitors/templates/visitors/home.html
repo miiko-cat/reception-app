@@ -16,6 +16,13 @@
         </label>
         {{ form.visitor_name }}
         {{ form.visitor_name.errors }}
+        <!-- 組織名（任意） -->
+        <label for="{{ form.organization_name.id_for_label }}">
+            {{ form.organization_name.label }}
+            <span class="optional">（任意）</span>
+        </label>
+        {{ form.organization_name }}
+        {{ form.organization_name.errors }}
         <!-- 電話番号（任意） -->
         <label for="{{ form.phone_number.id_for_label }}">
             {{ form.phone_number.label }}
@@ -40,4 +47,32 @@
         <!-- 受付ボタン -->
         <button type="submit">受付をする</button>
     </form>
+
+    <script>
+        // 入力中にリアルタイムで許可外の文字を取り除く共通処理
+        // ※ IME変換中(isComposing)は取り除かず、変換確定(compositionend)後に処理する
+        function restrictInput(input, disallowedPattern) {
+            if (!input) return;
+            const sanitize = () => {
+                const cleaned = input.value.replace(disallowedPattern, '');
+                if (cleaned !== input.value) input.value = cleaned;
+            };
+            input.addEventListener('input', (e) => {
+                if (e.isComposing) return;
+                sanitize();
+            });
+            input.addEventListener('compositionend', sanitize);
+        }
+
+        // 電話番号：半角数字とハイフン以外を除去
+        restrictInput(
+            document.getElementById('{{ form.phone_number.id_for_label }}'),
+            /[^0-9\-]/g
+        );
+        // メールアドレス：半角文字（0x20〜0x7E）以外を除去
+        restrictInput(
+            document.getElementById('{{ form.email.id_for_label }}'),
+            /[^\x20-\x7E]/g
+        );
+    </script>
 {% endblock %}
